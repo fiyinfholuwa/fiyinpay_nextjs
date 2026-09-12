@@ -1,9 +1,21 @@
+
+import HeaderBox from "@/components/HeaderBox";
+import TotalBalanceBox from "@/components/TotalBalanceBox";
+
 export default function Home() {
 
+    const loggedIn = {firstName: 'Olasope'}; // Replace with your actual authentication logic
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <h1 className="text-3xl font-bold">Welcome to DaraPay</h1>
-            <p className="mt-4 text-lg text-gray-600">A modern banking platform for everyone.</p>
-        </main>
+        <section className="home">
+            <div className = "home-content">
+                <HeaderBox
+                    type="greeting"
+                    title="Welcome to DaraPay"
+                    subtext="Your one-stop solution for all your banking needs."
+                    user={loggedIn?.firstName || 'Guest'}
+                />
+                <TotalBalanceBox accounts={[]} totalBanks={0} totalCurrentBalance={120000} />
+            </div>
+        </section>
     );
 }
