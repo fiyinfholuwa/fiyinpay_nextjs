@@ -1,39 +1,16 @@
-import { logoutAccount } from '@/lib/actions/user.actions'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import React from 'react'
+import Image from "next/image";
 
-const Footer = ({ user, type = 'desktop' }: FooterProps) => {
-  const router = useRouter();
+const Footer = ({ user }: FooterProps) => (
+  <footer className="flex items-center gap-2.5 border-t border-slate-200 pt-[18px]">
+    <div className="grid size-[38px] shrink-0 place-items-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">{user?.firstName?.[0]}</div>
+    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <strong className="truncate text-[13px]">{user?.firstName} {user?.lastName}</strong>
+      <span className="truncate text-[11px] text-slate-500">{user?.email || "adrian@horizon.app"}</span>
+    </div>
+    <button className="grid place-items-center border-0 bg-transparent p-1" aria-label="Log out">
+      <Image src="/icons/logout.svg" width={20} height={20} alt="" />
+    </button>
+  </footer>
+);
 
-  const handleLogOut = async () => {
-    const loggedOut = await logoutAccount();
-
-    if(loggedOut) router.push('/sign-in')
-  }
-
-  return (
-    <footer className="footer">
-      <div className={type === 'mobile' ? 'footer_name-mobile' : 'footer_name'}>
-        <p className="text-xl font-bold text-gray-700">
-          {user?.firstName[0]}
-        </p>
-      </div>
-
-      <div className={type === 'mobile' ? 'footer_email-mobile' : 'footer_email'}>
-          <h1 className="text-14 truncate text-gray-700 font-semibold">
-            {user?.firstName}
-          </h1>
-          <p className="text-14 truncate font-normal text-gray-600">
-            {user?.email}
-          </p>
-      </div>
-
-      <div className="footer_image" onClick={handleLogOut}>
-        <Image src="icons/logout.svg" fill alt="jsm" />
-      </div>
-    </footer>
-  )
-}
-
-export default Footer
+export default Footer;

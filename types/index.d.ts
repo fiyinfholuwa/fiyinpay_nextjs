@@ -203,13 +203,13 @@ declare interface BankTabItemProps {
 }
 
 declare interface TotalaBalanceBoxProps {
-  accounts: Account[];
+  accounts?: Account[];
   totalBanks: number;
   totalCurrentBalance: number;
 }
 
 declare interface FooterProps {
-  user: User;
+  user: Pick<User, "firstName" | "lastName" | "email">;
 }
 
 declare interface RightSidebarProps {
@@ -219,7 +219,7 @@ declare interface RightSidebarProps {
 }
 
 declare interface SiderbarProps {
-  user: User;
+  user: Pick<User, "firstName" | "lastName" | "email">;
 }
 
 declare interface RecentTransactionsProps {

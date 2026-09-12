@@ -1,30 +1,15 @@
-import React from 'react'
-import AnimatedCounter from './AnimatedCounter';
-import DoughnutChart from './DoughnutChart';
+import AnimatedCounter from "./AnimatedCounter";
+import DoughnutChart from "./DoughnutChart";
 
-const TotalBalanceBox = ({ accounts, totalBanks, totalCurrentBalance }: TotalaBalanceBoxProps) => {
-  return (
-    <section className="total-balance">
-      <div className="total-balance-chart">
-        <DoughnutChart accounts={accounts} />
-      </div>
+const TotalBalanceBox = ({ totalBanks, totalCurrentBalance }: TotalaBalanceBoxProps) => (
+  <section className="flex min-h-[180px] w-full items-center gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-7 sm:p-7">
+    <DoughnutChart />
+    <div className="flex-1">
+      <div className="flex items-center justify-between gap-3"><strong className="text-lg">{totalBanks} Bank Accounts</strong><button className="border-0 bg-transparent p-0 text-xs font-bold text-blue-600">＋ Add bank</button></div>
+      <p className="mb-1 mt-7 text-[13px] font-semibold text-slate-500">Total Current Balance</p>
+      <div className="text-[32px] font-bold tracking-[-0.04em]"><AnimatedCounter amount={totalCurrentBalance} /></div>
+    </div>
+  </section>
+);
 
-      <div className="flex flex-col gap-6">
-        <h2 className="header-2">
-          Bank Accounts: {totalBanks}
-        </h2>
-        <div className="flex flex-col gap-2">
-          <p className="total-balance-label">
-            Total Current Balance
-          </p>
-
-          <div className="total-balance-amount flex-center gap-2">
-            <AnimatedCounter amount={totalCurrentBalance} />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-export default TotalBalanceBox
+export default TotalBalanceBox;

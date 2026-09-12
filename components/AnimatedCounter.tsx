@@ -1,18 +1,5 @@
-'use client';
+const AnimatedCounter = ({ amount }: { amount: number }) => (
+  <span>{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)}</span>
+);
 
-import CountUp from 'react-countup';
-
-const AnimatedCounter = ({ amount }: { amount: number }) => {
-  return (
-    <div className="w-full">
-      <CountUp 
-        decimals={2}
-        decimal=","
-        prefix="$"
-        end={amount} 
-      />
-    </div>
-  )
-}
-
-export default AnimatedCounter
+export default AnimatedCounter;

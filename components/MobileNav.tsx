@@ -1,84 +1,32 @@
-'use client'
+"use client";
 
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { sidebarLinks } from "@/constants"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import Footer from "./Footer"
+import { sidebarLinks } from "@/constants";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
-const MobileNav = ({ user }: MobileNavProps) => {
+const MobileNav = () => {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <section className="w-fulll max-w-[264px]">
-      <Sheet>
-        <SheetTrigger>
-          <Image
-            src="/icons/hamburger.svg"
-            width={30}
-            height={30}
-            alt="menu"
-            className="cursor-pointer"
-          />
-        </SheetTrigger>
-        <SheetContent side="left" className="border-none bg-white">
-          <Link href="/" className="cursor-pointer flex items-center gap-1 px-4">
-            <Image 
-              src="/icons/logo.svg"
-              width={34}
-              height={34}
-              alt="Horizon logo"
-            />
-            <h1 className="text-26 font-ibm-plex-serif font-bold text-black-1">Horizon</h1>
-          </Link>
-          <div className="mobilenav-sheet">
-            <SheetClose asChild>
-              <nav className="flex h-full flex-col gap-6 pt-16 text-white">
-                  {sidebarLinks.map((item) => {
-                const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`)
+  return <>
+    <button className="grid size-10 place-items-center rounded-lg border border-slate-200 bg-white" onClick={() => setOpen(true)} aria-label="Open navigation">
+      <span className="flex flex-col gap-1"><i className="block h-0.5 w-5 bg-slate-700" /><i className="block h-0.5 w-5 bg-slate-700" /><i className="block h-0.5 w-5 bg-slate-700" /></span>
+    </button>
+    {open && <div className="fixed inset-0 z-50 bg-slate-900/40" onClick={() => setOpen(false)}>
+      <aside className="h-full w-[280px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="mb-10 flex items-center justify-between"><Link href="/" className="flex items-center gap-2 font-serif text-2xl font-bold text-[#00214f]" onClick={() => setOpen(false)}><Image src="/icons/logo.svg" width={30} height={30} alt="Horizon logo" />Horizon</Link><button className="text-2xl text-slate-500" onClick={() => setOpen(false)} aria-label="Close navigation">×</button></div>
+        <nav className="flex flex-col gap-2">
+          {sidebarLinks.map((item) => {
+            const active = pathname === item.route || (item.route !== "/" && pathname.startsWith(`${item.route}/`));
+            return <Link href={item.route} key={item.label} onClick={() => setOpen(false)} className={`flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold ${active ? "bg-gradient-to-r from-blue-600 to-blue-400 text-white" : "text-slate-700 hover:bg-slate-100"}`}><Image src={item.imgURL} width={22} height={22} alt="" className={active ? "brightness-0 invert" : "opacity-70"} />{item.label}</Link>;
+          })}
+          <Link href="#connect-bank" onClick={() => setOpen(false)} className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"><Image src="/icons/connect-bank.svg" width={22} height={22} alt="" className="opacity-70" />Connect bank</Link>
+        </nav>
+      </aside>
+    </div>}
+  </>;
+};
 
-                return (
-                  <SheetClose asChild key={item.route}>
-                    <Link href={item.route} key={item.label}
-                      className={cn('mobilenav-sheet_close w-full', { 'bg-bank-gradient': isActive })}
-                    >
-                        <Image 
-                          src={item.imgURL}
-                          alt={item.label}
-                          width={20}
-                          height={20}
-                          className={cn({
-                            'brightness-[3] invert-0': isActive
-                          })}
-                        />
-                      <p className={cn("text-16 font-semibold text-black-2", { "text-white": isActive })}>
-                        {item.label}
-                      </p>
-                    </Link>
-                  </SheetClose>
-                )
-              })}
-
-              USER
-              </nav>
-            </SheetClose>
-
-            <Footer user={user} type="mobile" />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </section>
-  )
-}
-
-export default MobileNav
+export default MobileNav;
