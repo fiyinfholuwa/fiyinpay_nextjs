@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Horizon Banking App",
-  description: "A simple, modern banking dashboard.",
+  title: "DaraLearn",
+  description: "Learn with the right tutor.",
   icons: {
-    icon: '/icons/logo.svg'
-  }
+    icon: "/icons/logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en"><body>{children}</body></html>
+    <html lang="en">
+      <body>{children}</body>
+    </html>
   );
 }
