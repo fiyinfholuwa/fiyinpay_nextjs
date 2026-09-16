@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { api, saveAccessToken } from "@/lib/api";
 import Toast, { ToastData } from "@/components/ui/Toast";
 
@@ -10,6 +10,7 @@ type AuthFormProps = { mode: "login" | "student" | "tutor" | "forgot" | "reset" 
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -23,6 +24,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const isForgot = mode === "forgot";
   const isReset = mode === "reset";
   const role = mode === "tutor" ? "TUTOR" : "STUDENT";
+
+  useEffect(() => {
+    if (isLogin && searchParams.get("registered") === "1") {
+      setToast({ type: "success", title: "Account created", message: "You can now log in. Remember to verify your email from your dashboard." });
+    }
+  }, [isLogin, searchParams]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,18 +59,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (result.user.role !== loginRole) {
           throw new Error(`This email belongs to a ${result.user.role === "TUTOR" ? "tutor" : "student"} account. Choose the correct login tab.`);
         }
-        if (result.requiresEmailVerification) {
-          setVerificationRequired(true);
-          setToast({ type: "info", title: "Verification required", message: "We sent a verification code to your email." });
-          return;
-        }
         saveAccessToken(result.accessToken);
-        router.push(result.user.role === "TUTOR" ? "/tutor/profile" : "/student/onboarding");
+        router.push(result.user.role === "TUTOR" ? "/tutor/dashboard" : "/student/dashboard");
         return;
       }
-      const result = await api<{ accessToken: string; message: string }>("/auth/register", { method: "POST", body: JSON.stringify({ email, password, firstName, lastName, role }) });
-      saveAccessToken(result.accessToken);
-      router.push(role === "TUTOR" ? "/tutor/dashboard" : "/student/dashboard");
+      await api<{ accessToken: string; message: string }>("/auth/register", { method: "POST", body: JSON.stringify({ email, password, firstName, lastName, role }) });
+      router.push("/login?registered=1");
     } catch (caught) {
       setToast({ type: "error", title: "", message: caught instanceof Error ? caught.message : "Unable to complete request" });
     } finally {

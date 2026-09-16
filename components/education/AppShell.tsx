@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authorizedApi } from "@/lib/api";
-import EmailVerificationGate from "./EmailVerificationGate";
+import Toast, { ToastData } from "@/components/ui/Toast";
 
 const links = {
   student: [
@@ -13,12 +13,15 @@ const links = {
     ["Find a tutor", "/student/tutors"],
     ["My subscriptions", "/student/subscriptions"],
     ["Payment history", "/student/payments"],
+    ["Assignments", "/student/assignments"],
+    ["Profile", "/student/profile"],
   ],
   tutor: [
     ["Dashboard", "/tutor/dashboard"],
     ["My profile", "/tutor/profile"],
     ["My students", "/tutor/students"],
     ["Schedule", "/tutor/schedule"],
+    ["Assignments", "/tutor/assignments"],
     ["Earnings", "/tutor/earnings"],
   ],
   admin: [
@@ -39,19 +42,12 @@ export default function AppShell({
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<{ email: string; emailVerified: boolean } | null>(null);
-  const dashboardPath = `/${role}/dashboard`;
-
+  const [toast, setToast] = useState<ToastData | null>(null);
   useEffect(() => {
     authorizedApi<{ email: string; emailVerified: boolean }>("/auth/me")
       .then(setUser)
       .catch(() => router.replace("/login"));
   }, [router]);
-
-  useEffect(() => {
-    if (user && !user.emailVerified && pathname !== dashboardPath) {
-      router.replace(dashboardPath);
-    }
-  }, [dashboardPath, pathname, router, user]);
 
   const logout = () => {
     window.localStorage.removeItem("daralearn-access-token");
@@ -65,10 +61,8 @@ export default function AppShell({
           {role} workspace
         </p>
         <nav className="space-y-1">
-          {links[role].map(([label, href]) => user && !user.emailVerified && href !== dashboardPath ? (
-            <button key={href} type="button" disabled title="Verify your email first" className="flex w-full cursor-not-allowed rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-300">{label}</button>
-          ) : (
-            <Link key={href} href={href} className={`flex rounded-xl px-3 py-3 text-sm font-semibold ${pathname === href ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{label}</Link>
+          {links[role].map(([label, href]) => (
+            user && !user.emailVerified && href !== `/${role}/dashboard` ? <button key={href} type="button" onClick={() => setToast({ type: "error", title: "", message: "Verify your email before opening this section." })} className="flex w-full rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-400 hover:bg-red-50 hover:text-red-800">{label}</button> : <Link key={href} href={href} className={`flex rounded-xl px-3 py-3 text-sm font-semibold ${pathname === href ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{label}</Link>
           ))}
         </nav>
         <div className="mt-auto border-t border-slate-200 pt-5">
@@ -78,13 +72,13 @@ export default function AppShell({
         </div>
       </aside>
       <div className="min-w-0 flex-1">
+        <Toast toast={toast} onClose={() => setToast(null)} />
         <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 md:hidden">
           <Brand />
           <button type="button" onClick={logout} className="text-xs font-semibold text-slate-500">
             Log out
           </button>
         </header>
-        {user && !user.emailVerified && <EmailVerificationGate email={user.email} onVerified={() => setUser({ ...user, emailVerified: true })} />}
         {children}
       </div>
     </div>

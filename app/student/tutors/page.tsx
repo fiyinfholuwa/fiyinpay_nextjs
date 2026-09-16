@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import EmptyState from "@/components/education/EmptyState";
 import TutorCard from "@/components/education/TutorCard";
 import WorkspacePage from "@/components/education/WorkspacePage";
 import { authorizedApi } from "@/lib/api";
@@ -43,6 +44,7 @@ export default function TutorsPage() {
           <TutorCard
             key={tutor.id}
             tutor={{ name: `${tutor.user.firstName} ${tutor.user.lastName}`, subject: tutor.skills[0]?.subject.name ?? "Tutor", bio: tutor.bio ?? "A verified tutor ready to help you make progress.", rating: 5, rate: tutor.monthlyRate, initials: `${tutor.user.firstName[0]}${tutor.user.lastName[0]}`, color: "bg-blue-600" }}
+            profileHref={`/student/tutors/${tutor.id}`}
             onBook={async () => {
               const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
               const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
@@ -55,6 +57,15 @@ export default function TutorsPage() {
             }}
           />
         ))}
+        {!filteredTutors.length && (
+          <div className="md:col-span-2 xl:col-span-3">
+            <EmptyState
+              title={tutors.length ? "No tutors found" : "Build your learning plan"}
+              description={tutors.length ? "Try a different name or subject to find a tutor." : "Choose your interests so we can match you with tutors who fit your learning goals."}
+              action={tutors.length ? { label: "Clear search", onClick: () => setSearch("") } : { label: "Choose interests", onClick: () => window.location.assign("/student/onboarding") }}
+            />
+          </div>
+        )}
       </div>
       {message && <p className="mt-5 text-sm text-slate-500">{message}</p>}
     </WorkspacePage>

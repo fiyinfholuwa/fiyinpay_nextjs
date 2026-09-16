@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authorizedApi } from "@/lib/api";
 
 type Subject = { id: string; name: string; description?: string | null };
+type InterestResponse = { interests: { subjectId: string }[] };
 
 export default function StudentOnboardingPage() {
   const router = useRouter();
@@ -13,8 +14,14 @@ export default function StudentOnboardingPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    authorizedApi<Subject[]>("/subjects")
-      .then(setSubjects)
+    Promise.all([
+      authorizedApi<Subject[]>("/subjects"),
+      authorizedApi<InterestResponse>("/students/me/interests"),
+    ])
+      .then(([availableSubjects, savedInterests]) => {
+        setSubjects(availableSubjects);
+        setSelected(savedInterests.interests.map((interest) => interest.subjectId));
+      })
       .catch((caught) => setError(caught instanceof Error ? caught.message : "Unable to load subjects"));
   }, []);
 
@@ -32,10 +39,10 @@ export default function StudentOnboardingPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-12 sm:px-8">
+    <main className="w-full px-5 py-12 sm:px-8">
       <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Personalise your learning</p>
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">What would you like to learn?</h1>
-      <p className="mt-3 max-w-xl leading-7 text-slate-500">Choose a few interests and we’ll use them to recommend tutors who match your goals.</p>
+      <p className="mt-3 max-w-2xl leading-7 text-slate-500">Choose a few interests and we’ll use them to recommend tutors who match your goals.</p>
       {error && <p className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {subjects.map((subject) => {

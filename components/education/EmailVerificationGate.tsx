@@ -13,6 +13,7 @@ export default function EmailVerificationGate({ email, onVerified }: EmailVerifi
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
 
   async function verify(event: FormEvent<HTMLFormElement>) {
@@ -36,27 +37,30 @@ export default function EmailVerificationGate({ email, onVerified }: EmailVerifi
   }
 
   async function resendCode() {
+    setResending(true);
     try {
       const result = await authorizedApi<{ message: string }>("/auth/resend-otp", {
         method: "POST",
         body: JSON.stringify({ email }),
       });
-      setToast({ type: "info", title: "Code sent", message: result.message });
+      setToast({ type: "success", title: "Verification code sent", message: result.message });
     } catch (error) {
       setToast({ type: "error", title: "", message: error instanceof Error ? error.message : "Unable to resend code" });
+    } finally {
+      setResending(false);
     }
   }
 
   return (
     <>
       <Toast toast={toast} onClose={() => setToast(null)} />
-      <div className="border-b border-amber-200 bg-amber-50 px-5 py-4 sm:px-8">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-b border-red-200 bg-red-50 px-5 py-4 sm:px-8">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-bold text-amber-950">Verify your email to unlock your workspace</p>
-            <p className="mt-1 text-sm text-amber-800">Check your inbox for the six-digit verification code.</p>
+            <p className="text-sm font-bold text-red-950">Your email has not been verified</p>
+            <p className="mt-1 text-sm text-red-800">You can continue using DaraLearn, but please verify your email when convenient.</p>
           </div>
-          <button type="button" onClick={() => setOpen(true)} className="w-fit rounded-lg bg-amber-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-900">Verify email</button>
+          <button type="button" onClick={() => setOpen(true)} className="w-fit rounded-lg bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800">Verify email</button>
         </div>
       </div>
       {open && <div className="fixed inset-0 z-40 grid place-items-center bg-slate-950/40 px-5" onClick={() => setOpen(false)}>
@@ -73,7 +77,7 @@ export default function EmailVerificationGate({ email, onVerified }: EmailVerifi
             <label className="text-sm font-semibold text-slate-700">Verification code<input autoFocus required inputMode="numeric" pattern="[0-9]{6}" value={code} onChange={(event) => setCode(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3 text-center text-lg tracking-[0.4em] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="123456" /></label>
             <button disabled={loading} className="mt-5 w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Verifying..." : "Verify email"}</button>
           </form>
-          <button type="button" onClick={resendCode} className="mt-4 w-full text-sm font-semibold text-blue-600 hover:text-blue-700">Resend code</button>
+          <button type="button" onClick={resendCode} disabled={resending} className="mt-4 w-full text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:cursor-wait disabled:opacity-60">{resending ? "Sending code..." : "Resend code"}</button>
         </section>
       </div>}
     </>

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 type Tutor = {
   name: string;
   subject: string;
@@ -13,9 +15,11 @@ type Tutor = {
 export default function TutorCard({
   tutor,
   onBook,
+  profileHref,
 }: {
   tutor: Tutor;
   onBook: () => void;
+  profileHref?: string;
 }) {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -37,14 +41,17 @@ export default function TutorCard({
       <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
         <span className="text-sm font-bold text-slate-800">
           ${tutor.rate}
-          <span className="font-normal text-slate-400"> / hour</span>
+          <span className="font-normal text-slate-400"> / month</span>
         </span>
-        <button
-          onClick={onBook}
-          className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700"
-        >
-          Book lesson
-        </button>
+        <div className="flex items-center gap-2">
+          {profileHref && <Link href={profileHref} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">View profile</Link>}
+          <button
+            onClick={onBook}
+            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700"
+          >
+            Book lesson
+          </button>
+        </div>
       </div>
     </article>
   );
