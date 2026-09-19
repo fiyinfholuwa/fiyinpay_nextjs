@@ -56,7 +56,7 @@ export default function FundWalletModal({
   return (
     <>
       <Toast toast={toast} onClose={() => setToast(null)} />
-      <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-lg shadow-blue-100">
+      <div className="h-full rounded-2xl bg-blue-600 p-5 text-white shadow-lg shadow-blue-100">
         <p className="text-sm text-blue-100">Wallet balance</p>
         <div className="mt-2 flex items-end justify-between gap-4">
           <strong className="text-3xl">

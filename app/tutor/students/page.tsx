@@ -8,8 +8,8 @@ import { authorizedApi } from "@/lib/api";
 type Booking = {
   id: string;
   status: string;
-  student: { firstName: string; lastName: string; email: string };
   subject: { name: string };
+  student: { firstName: string; lastName: string; email: string };
 };
 
 export default function StudentsPage() {
@@ -20,9 +20,21 @@ export default function StudentsPage() {
       .catch(() => setBookings([]));
   }, []);
   const students = Array.from(
-    new Map(
-      bookings.map((booking) => [booking.student.email, booking]),
-    ).values(),
+    bookings
+      .filter((booking) => booking.status === "CONFIRMED")
+      .reduce((studentMap, booking) => {
+        const current = studentMap.get(booking.student.email);
+        if (current) {
+          current.subjects.add(booking.subject.name);
+        } else {
+          studentMap.set(booking.student.email, {
+            ...booking,
+            subjects: new Set([booking.subject.name]),
+          });
+        }
+        return studentMap;
+      }, new Map<string, Booking & { subjects: Set<string> }>())
+      .values(),
   );
   return (
     <WorkspacePage
@@ -42,7 +54,7 @@ export default function StudentsPage() {
                   {booking.student.firstName} {booking.student.lastName}
                 </strong>
                 <span className="text-xs text-slate-500">
-                  {booking.subject.name} · {booking.student.email}
+                  {Array.from(booking.subjects).join(", ")} · {booking.student.email}
                 </span>
               </div>
               <span className="text-xs font-bold text-blue-600">

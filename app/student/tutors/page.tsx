@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import EmptyState from "@/components/education/EmptyState";
 import TutorCard from "@/components/education/TutorCard";
+import Toast, { ToastData } from "@/components/ui/Toast";
 import WorkspacePage from "@/components/education/WorkspacePage";
 import { authorizedApi } from "@/lib/api";
 
@@ -12,23 +13,31 @@ type Recommendation = {
   user: { id: string; firstName: string; lastName: string };
   skills: { subjectId: string; subject: { name: string } }[];
 };
+type Booking = { tutorId: string; subscription?: { status: string } | null };
 
 export default function TutorsPage() {
   const [search, setSearch] = useState("");
   const [tutors, setTutors] = useState<Recommendation[]>([]);
-  const [message, setMessage] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [toast, setToast] = useState<ToastData | null>(null);
   useEffect(() => {
     authorizedApi<Recommendation[]>("/students/me/recommendations")
       .then(setTutors)
-      .catch((error) => setMessage(error.message));
+      .catch((error) => setToast({ type: "error", title: "Unable to load tutors", message: error instanceof Error ? error.message : "Please try again." }));
+    authorizedApi<Booking[]>("/students/me/bookings")
+      .then(setBookings)
+      .catch(() => setBookings([]));
   }, []);
+  const subscribedTutorIds = new Set(bookings.filter((booking) => booking.subscription?.status === "ACTIVE").map((booking) => booking.tutorId));
   const filteredTutors = tutors.filter((tutor) =>
     `${tutor.user.firstName} ${tutor.user.lastName} ${tutor.skills[0]?.subject.name ?? ""}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
   return (
-    <WorkspacePage
+    <>
+      <Toast toast={toast} onClose={() => setToast(null)} />
+      <WorkspacePage
       eyebrow="Student workspace"
       title="Find a tutor"
       description="Search trusted tutors by name or subject."
@@ -45,14 +54,15 @@ export default function TutorsPage() {
             key={tutor.id}
             tutor={{ name: `${tutor.user.firstName} ${tutor.user.lastName}`, subject: tutor.skills[0]?.subject.name ?? "Tutor", bio: tutor.bio ?? "A verified tutor ready to help you make progress.", rating: 5, rate: tutor.monthlyRate, initials: `${tutor.user.firstName[0]}${tutor.user.lastName[0]}`, color: "bg-blue-600" }}
             profileHref={`/student/tutors/${tutor.id}`}
+            bookingDisabled={subscribedTutorIds.has(tutor.user.id)}
             onBook={async () => {
               const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
               const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
               try {
                 await authorizedApi("/bookings", { method: "POST", body: JSON.stringify({ tutorId: tutor.user.id, subjectId: tutor.skills[0]?.subjectId, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() }) });
-                setMessage("Booking created. Fund your wallet, then confirm it from your subscriptions.");
+                setToast({ type: "success", title: "Booking created", message: "Fund your wallet, then confirm it from My subscriptions." });
               } catch (error) {
-                setMessage(error instanceof Error ? error.message : "Unable to book tutor");
+                setToast({ type: "error", title: "Unable to book tutor", message: error instanceof Error ? error.message : "Please try again." });
               }
             }}
           />
@@ -67,7 +77,7 @@ export default function TutorsPage() {
           </div>
         )}
       </div>
-      {message && <p className="mt-5 text-sm text-slate-500">{message}</p>}
-    </WorkspacePage>
+      </WorkspacePage>
+    </>
   );
 }

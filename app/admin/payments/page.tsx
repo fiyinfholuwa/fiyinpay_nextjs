@@ -10,7 +10,7 @@ type Payout = {
   amount: number | string;
   status: string;
   createdAt: string;
-  tutor: { firstName: string; lastName: string; email: string };
+  tutor: { firstName: string; lastName: string; email: string; bankAccount?: { bankName: string; accountName: string; accountNumber: string } | null };
 };
 
 export default function AdminPayments() {
@@ -60,6 +60,11 @@ export default function AdminPayments() {
                 <span className="text-xs text-slate-500">
                   {payout.tutor.email} ·{" "}
                   {new Date(payout.createdAt).toLocaleDateString()}
+                </span>
+                <span className="mt-2 block text-xs text-slate-600">
+                  {payout.tutor.bankAccount
+                    ? `${payout.tutor.bankAccount.bankName} · ${payout.tutor.bankAccount.accountName} · ${payout.tutor.bankAccount.accountNumber}`
+                    : "Bank details not added"}
                 </span>
               </div>
               <div className="flex items-center gap-3">

@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { api, saveAccessToken } from "@/lib/api";
 import Toast, { ToastData } from "@/components/ui/Toast";
 
-type AuthFormProps = { mode: "login" | "student" | "tutor" | "forgot" | "reset" };
+type AuthFormProps = { mode: "login" | "admin" | "student" | "tutor" | "forgot" | "reset" };
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
@@ -19,11 +19,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [verificationRequired, setVerificationRequired] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loginRole, setLoginRole] = useState<"STUDENT" | "TUTOR">("STUDENT");
-  const isLogin = mode === "login";
+  const [loginRole, setLoginRole] = useState<"STUDENT" | "TUTOR" | "ADMIN">(mode === "admin" ? "ADMIN" : "STUDENT");
+  const isAdminLogin = mode === "admin";
+  const isLogin = mode === "login" || isAdminLogin;
   const isForgot = mode === "forgot";
   const isReset = mode === "reset";
-  const role = mode === "tutor" ? "TUTOR" : "STUDENT";
+  const role = mode === "tutor" ? "TUTOR" : mode === "admin" ? "ADMIN" : "STUDENT";
 
   useEffect(() => {
     if (isLogin && searchParams.get("registered") === "1") {
@@ -39,7 +40,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       if (verificationRequired) {
         const result = await api<{ accessToken: string }>("/auth/verify-email", { method: "POST", body: JSON.stringify({ email, code: otp }) });
         saveAccessToken(result.accessToken);
-        router.push(role === "TUTOR" ? "/tutor/profile" : "/student/onboarding");
+        router.push(role === "ADMIN" ? "/admin/dashboard" : role === "TUTOR" ? "/tutor/profile" : "/student/onboarding");
         return;
       }
       if (isForgot) {
@@ -56,11 +57,13 @@ export default function AuthForm({ mode }: AuthFormProps) {
       }
       if (isLogin) {
         const result = await api<{ accessToken: string; requiresEmailVerification: boolean; user: { role: string } }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
-        if (result.user.role !== loginRole) {
-          throw new Error(`This email belongs to a ${result.user.role === "TUTOR" ? "tutor" : "student"} account. Choose the correct login tab.`);
+        const expectedRole = isAdminLogin ? "ADMIN" : loginRole;
+        if (result.user.role !== expectedRole) {
+          const accountType = result.user.role === "TUTOR" ? "tutor" : result.user.role === "ADMIN" ? "admin" : "student";
+          throw new Error(`This email belongs to an ${accountType} account. Choose the correct login tab.`);
         }
         saveAccessToken(result.accessToken);
-        router.push(result.user.role === "TUTOR" ? "/tutor/dashboard" : "/student/dashboard");
+        router.push(result.user.role === "ADMIN" ? "/admin/dashboard" : result.user.role === "TUTOR" ? "/tutor/dashboard" : "/student/dashboard");
         return;
       }
       await api<{ accessToken: string; message: string }>("/auth/register", { method: "POST", body: JSON.stringify({ email, password, firstName, lastName, role }) });
@@ -79,9 +82,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
         <Link href="/" className="text-sm font-semibold text-blue-600">← Back home</Link>
         <div className="mt-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-950">{verificationRequired ? "Verify your email" : isForgot ? "Forgot password" : isReset ? "Reset password" : isLogin ? "Welcome back" : `Create your ${role.toLowerCase()} account`}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{verificationRequired ? "Enter the six-digit code we sent to your email." : isForgot ? "Enter your email and we will send a reset link." : isLogin ? `Log in as a ${loginRole === "TUTOR" ? "tutor" : "student"} to continue your learning journey.` : "Create your DaraLearn account to get started."}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{verificationRequired ? "Enter the six-digit code we sent to your email." : isForgot ? "Enter your email and we will send a reset link." : isLogin ? `Log in as a ${isAdminLogin || loginRole === "ADMIN" ? "admin" : loginRole === "TUTOR" ? "tutor" : "student"} to continue your learning journey.` : "Create your DaraLearn account to get started."}</p>
         </div>
-        {isLogin && !verificationRequired && <div className="mt-7 grid grid-cols-2 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account type">
+        {isLogin && !isAdminLogin && !verificationRequired && <div className="mt-7 grid grid-cols-2 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account type">
           {(["STUDENT", "TUTOR"] as const).map((roleOption) => {
             const active = loginRole === roleOption;
             return <button key={roleOption} type="button" role="tab" aria-selected={active} onClick={() => { setLoginRole(roleOption); setToast(null); }} className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${active ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
@@ -99,7 +102,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           {isLogin && <Link href="/auth/forgot-password" className="block text-right text-xs font-semibold text-blue-600">Forgot password?</Link>}
           <button disabled={loading} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Please wait…" : verificationRequired ? "Verify email" : isForgot ? "Send reset link" : isLogin ? "Log in" : "Create account"}</button>
         </form>
-        <p className="mt-7 text-center text-sm text-slate-500">{isLogin ? "New to DaraLearn? " : "Already have an account? "}<Link className="font-semibold text-blue-600" href={isLogin ? "/register/student" : "/login"}>{isLogin ? "Create an account" : "Log in"}</Link></p>
+        <p className="mt-7 text-center text-sm text-slate-500">{isAdminLogin ? <Link className="font-semibold text-blue-600" href="/login">← Main login</Link> : <>{isLogin ? "New to DaraLearn? " : "Already have an account? "}<Link className="font-semibold text-blue-600" href={isLogin ? "/register/student" : "/login"}>{isLogin ? "Create an account" : "Log in"}</Link></>}</p>
       </section>
     </main>
   );

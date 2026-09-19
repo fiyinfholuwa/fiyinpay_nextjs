@@ -16,13 +16,15 @@ export default function TutorCard({
   tutor,
   onBook,
   profileHref,
+  bookingDisabled = false,
 }: {
   tutor: Tutor;
   onBook: () => void;
   profileHref?: string;
+  bookingDisabled?: boolean;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="flex items-start gap-4">
         <div
           className={`grid size-12 shrink-0 place-items-center rounded-full text-sm font-bold text-white ${tutor.color}`}
@@ -37,7 +39,7 @@ export default function TutorCard({
           ★ {Number(tutor.rating).toFixed(1)}
         </span>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-500">{tutor.bio}</p>
+      <p className="mt-4 flex-1 text-sm leading-6 text-slate-500">{tutor.bio}</p>
       <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
         <span className="text-sm font-bold text-slate-800">
           ${tutor.rate}
@@ -46,10 +48,12 @@ export default function TutorCard({
         <div className="flex items-center gap-2">
           {profileHref && <Link href={profileHref} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">View profile</Link>}
           <button
+            type="button"
             onClick={onBook}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700"
+            disabled={bookingDisabled}
+            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
           >
-            Book lesson
+            {bookingDisabled ? "Subscribed" : "Book lesson"}
           </button>
         </div>
       </div>

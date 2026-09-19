@@ -17,23 +17,34 @@ type Tutor = {
   user: { id: string; firstName: string; lastName: string; email: string };
   skills: { subjectId: string; subject: { name: string; description?: string | null } }[];
 };
+type Booking = { tutorId: string; subscription?: { status: string } | null };
 
 export default function TutorProfilePage() {
   const params = useParams<{ id: string }>();
   const [tutor, setTutor] = useState<Tutor | null>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
 
   useEffect(() => {
     authorizedApi<Tutor>(`/tutors/${params.id}`)
-      .then(setTutor)
+      .then((loadedTutor) => {
+        setTutor(loadedTutor);
+        return authorizedApi<Booking[]>("/students/me/bookings").then((bookings) => {
+          setHasActiveSubscription(bookings.some((item) => item.tutorId === loadedTutor.user.id && item.subscription?.status === "ACTIVE"));
+        });
+      })
       .catch((error) => setToast({ type: "error", title: "Unable to load tutor", message: error instanceof Error ? error.message : "Please try again." }))
       .finally(() => setLoading(false));
   }, [params.id]);
 
   async function bookLesson() {
     if (!tutor || !tutor.skills[0]) return;
+    if (hasActiveSubscription) {
+      setToast({ type: "info", title: "Already subscribed", message: "You already have an active subscription with this tutor." });
+      return;
+    }
     const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
     setBooking(true);
@@ -78,7 +89,7 @@ export default function TutorProfilePage() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4"><span className="text-slate-500">Verification</span><strong className="text-emerald-700">{tutor.kycStatus}</strong></div>
                 <div className="flex items-center justify-between"><span className="text-slate-500">Subjects</span><strong className="text-slate-900">{tutor.skills.length}</strong></div>
               </div>
-              <button type="button" disabled={booking} onClick={bookLesson} className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{booking ? "Creating booking..." : "Book a lesson"}</button>
+              <button type="button" disabled={booking || hasActiveSubscription} onClick={bookLesson} className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">{booking ? "Creating booking..." : hasActiveSubscription ? "Already subscribed" : "Book a lesson"}</button>
             </Section>
           </div>
         )}
