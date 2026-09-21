@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { api, saveAccessToken } from "@/lib/api";
+import { api, authorizedApi, saveAccessToken } from "@/lib/api";
 import Toast, { ToastData } from "@/components/ui/Toast";
 
 type AuthFormProps = { mode: "login" | "admin" | "student" | "tutor" | "forgot" | "reset" };
@@ -31,6 +31,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
       setToast({ type: "success", title: "Account created", message: "You can now log in. Remember to verify your email from your dashboard." });
     }
   }, [isLogin, searchParams]);
+
+  useEffect(() => {
+    if (isForgot || isReset || !window.localStorage.getItem("daralearn-access-token")) return;
+
+    authorizedApi<{ role: string }>("/auth/me")
+      .then((user) => {
+        router.replace(user.role === "ADMIN" ? "/admin/dashboard" : user.role === "TUTOR" ? "/tutor/dashboard" : "/student/dashboard");
+      })
+      .catch(() => window.localStorage.removeItem("daralearn-access-token"));
+  }, [isForgot, isReset, router]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

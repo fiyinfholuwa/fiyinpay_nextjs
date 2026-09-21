@@ -1,12 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Brand from "../Brand";
+import { authorizedApi } from "@/lib/api";
 
 export default function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [dashboardPath, setDashboardPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!window.localStorage.getItem("daralearn-access-token")) {
+      setAuthChecked(true);
+      return;
+    }
+
+    authorizedApi<{ role: string }>("/auth/me")
+      .then((user) => {
+        setDashboardPath(
+          user.role === "ADMIN"
+            ? "/admin/dashboard"
+            : user.role === "TUTOR"
+              ? "/tutor/dashboard"
+              : "/student/dashboard",
+        );
+      })
+      .catch(() => window.localStorage.removeItem("daralearn-access-token"))
+      .finally(() => setAuthChecked(true));
+  }, []);
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -27,18 +50,20 @@ export default function LandingHeader() {
           </a>
         </nav>
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <Link
-            href="/login"
-            className="hidden px-3 py-2 text-slate-600 hover:text-blue-600 sm:block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register/student"
-            className="hidden rounded-xl bg-blue-600 px-4 py-2.5 text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 sm:block"
-          >
-            Get started
-          </Link>
+          {authChecked && (dashboardPath ? (
+            <Link href={dashboardPath} className="rounded-xl bg-blue-600 px-4 py-2.5 text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700">
+              Go to dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden px-3 py-2 text-slate-600 hover:text-blue-600 sm:block">
+                Log in
+              </Link>
+              <Link href="/register/student" className="hidden rounded-xl bg-blue-600 px-4 py-2.5 text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 sm:block">
+                Get started
+              </Link>
+            </>
+          ))}
           <button
             type="button"
             aria-expanded={isMenuOpen}
@@ -87,22 +112,24 @@ export default function LandingHeader() {
               Why DaraLearn
             </a>
           </nav>
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
-            <Link
-              href="/login"
-              onClick={closeMenu}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/register/student"
-              onClick={closeMenu}
-              className="rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Get started
-            </Link>
-          </div>
+          {authChecked && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              {dashboardPath ? (
+                <Link href={dashboardPath} onClick={closeMenu} className="block rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                  Go to dashboard
+                </Link>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/login" onClick={closeMenu} className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50">
+                    Log in
+                  </Link>
+                  <Link href="/register/student" onClick={closeMenu} className="rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                    Get started
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </header>
