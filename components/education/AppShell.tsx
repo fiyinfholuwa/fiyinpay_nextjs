@@ -102,15 +102,15 @@ export default function AppShell({
       </aside>
       <div className="min-w-0 flex-1">
         <Toast toast={toast} onClose={() => setToast(null)} />
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 md:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 md:hidden">
           <Brand />
-          <button type="button" aria-label="Open navigation" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((open) => !open)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
-            Menu
+          <button type="button" aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((open) => !open)} className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100">
+            {mobileNavOpen ? <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg> : <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>}
           </button>
         </header>
         {mobileNavOpen && <div className="fixed inset-0 z-40 bg-slate-950/30 md:hidden" onClick={() => setMobileNavOpen(false)}>
-          <aside className="h-full w-72 bg-white p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-8 flex items-center justify-between"><Brand /><button type="button" onClick={() => setMobileNavOpen(false)} className="text-sm font-semibold text-slate-500">Close</button></div>
+          <aside className="fixed inset-y-0 left-0 h-full w-72 overflow-y-auto bg-white p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-8 flex items-center justify-between"><Brand /><button type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)} className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div>
             <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">{role} workspace</p>
             {renderNavigation()}
             <button type="button" onClick={logout} className="mt-8 flex items-center gap-3 border-t border-slate-200 pt-5 text-sm font-semibold text-slate-500">↪ Log out</button>
