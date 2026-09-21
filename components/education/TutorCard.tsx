@@ -42,7 +42,7 @@ export default function TutorCard({
       <p className="mt-4 flex-1 text-sm leading-6 text-slate-500">{tutor.bio}</p>
       <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
         <span className="text-sm font-bold text-slate-800">
-          ${tutor.rate}
+          ₦{Number(tutor.rate).toLocaleString("en-NG")}
           <span className="font-normal text-slate-400"> / month</span>
         </span>
         <div className="flex items-center gap-2">
